@@ -43,6 +43,7 @@ public class CentralDados {
         return pedido;
     }
 
+
     public Cliente buscarClientePorId(int id) {
         return clientes.stream().filter(c -> c.getId() == id).findFirst().orElse(null);
     }

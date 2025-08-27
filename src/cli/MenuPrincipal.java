@@ -7,6 +7,8 @@ import service.SistemaRestaurante;
 import java.util.List;
 import java.util.Scanner;
 
+import static java.sql.DriverManager.println;
+
 public class MenuPrincipal {
     private final SistemaRestaurante sistema = new SistemaRestaurante();
     private final Scanner scanner = new Scanner(System.in);
@@ -16,8 +18,8 @@ public class MenuPrincipal {
         do {
             System.out.println("\n=== MENU PRINCIPAL ===");
             System.out.println("1. Cadastrar Cliente");
-            System.out.println("2. Listar Clientes");
-            System.out.println("3. Cadastrar Item do Cardápio");
+            System.out.println("2. Cadastrar Item do Cardápio");
+            System.out.println("3. Listar Clientes");
             System.out.println("4. Listar Itens do Cardápio");
             System.out.println("5. Criar Pedido");
             System.out.println("6. Avançar Status de Pedido");
@@ -31,8 +33,8 @@ public class MenuPrincipal {
 
             switch (opcao) {
                 case 1 -> cadastrarCliente();
-                case 2 -> listarClientes();
-                case 3 -> cadastrarItem();
+                case 2 -> cadastrarItem();
+                case 3 -> listarClientes();
                 case 4 -> listarItens();
                 case 5 -> criarPedido();
                 case 6 -> avancarStatus();
@@ -61,6 +63,7 @@ public class MenuPrincipal {
             System.out.printf("ID: %d | Nome: %s | Telefone: %s%n", c.getId(), c.getNome(), c.getTelefone());
         }
     }
+
 
     private void cadastrarItem() {
         System.out.print("Nome do item: ");
@@ -112,12 +115,27 @@ public class MenuPrincipal {
         System.out.println("Pedido criado com número: " + pedido.getNumero());
     }
 
+    private List<Pedido> listarPedidosNaoEntregues() {
+        List<Pedido> pedidos = sistema.listarTodosPedidos();
+        return pedidos.stream()
+                .filter(p -> p.getStatus() != StatusPedido.ENTREGUE)
+                .toList();
+    }
+
     private void avancarStatus() {
-        System.out.print("Digite o número do pedido: ");
+        List<Pedido> pedidosNaoEntregues = listarPedidosNaoEntregues();
+        System.out.println("Pedidos que podem ser avançados:");
+        for (Pedido p : pedidosNaoEntregues) {
+            System.out.printf("Número: %d | Cliente: %s | Status: %s%n",
+                    p.getNumero(), p.getCliente().getNome(), p.getStatus());
+        }
+
+        System.out.print("Digite o número do pedido que deseja avançar: ");
         int pedidoId = scanner.nextInt();
         scanner.nextLine();
         boolean sucesso = sistema.avancarStatusPedido(pedidoId);
         if (sucesso) {
+
             System.out.println("Status do pedido avançado com sucesso.");
         } else {
             System.out.println("Não foi possível avançar o status.");

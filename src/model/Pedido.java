@@ -1,24 +1,28 @@
 package model;
 
+import service.CentralDados;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.sql.DriverManager.println;
+
 public class Pedido {
-    private final int numero;
+    private  int numero;
     private final Cliente cliente;
     private final List<ItemPedido> itens;
     private double valorTotal;
     private StatusPedido status;
-    private final LocalDateTime dataHora;
+    private LocalDateTime dataHora;
     private final List<PedidoListener> listeners = new ArrayList<>();
 
     public Pedido(int numero, Cliente cliente) {
         this.numero = numero;
         this.cliente = cliente;
         this.itens = new ArrayList<>();
-        this.status = StatusPedido.ACEITO;
-        this.dataHora = LocalDateTime.now();
+        this.status = null;
+        this.dataHora = null;
     }
 
     public void adicionarItem(ItemCardapio item, int quantidade) {
@@ -27,9 +31,18 @@ public class Pedido {
         valorTotal += novoItem.getSubtotal();
     }
 
+    public void aceitarPedido() {
+        this.status = StatusPedido.ACEITO;
+        this.dataHora = LocalDateTime.now();
+
+        notificarListeners();
+    }
+
+
     public boolean avancarStatus() {
         StatusPedido antigo = status;
         switch (status) {
+            case null -> { aceitarPedido();}
             case ACEITO -> status = StatusPedido.PREPARANDO;
             case PREPARANDO -> status = StatusPedido.FEITO;
             case FEITO -> status = StatusPedido.AGUARDANDO_ENTREGADOR;
@@ -37,6 +50,8 @@ public class Pedido {
             case SAIU_PARA_ENTREGA -> status = StatusPedido.ENTREGUE;
             case ENTREGUE -> { return false; }
         }
+        System.out.println("Status do pedido foi alterado de:" + antigo + " para " + status);
+
         if (status != antigo) {
             notificarListeners();
         }
